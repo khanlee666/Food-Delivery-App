@@ -6,7 +6,9 @@ import { categories } from "../utils/data"
 import Loader from './Loader';
 import { deleteObject, getDownloadURL, ref, uploadBytesResumable } from 'firebase/storage';
 import { storage } from '../firebase.config';
-import { saveItem } from '../utils/firebaseFunctions';
+import { getAllFoodItems, saveItem } from '../utils/firebaseFunctions';
+import { actionTypes } from '../context/reducer';
+import { useStateValue } from '../context/stateProvider';
 
 const CreateContainer = () => {
 
@@ -19,6 +21,7 @@ const CreateContainer = () => {
   const [alertStatus, setAlertStatus] = useState("danger");
   const [msg, setMsg] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const[{foodItems}, dispatch] = useStateValue();
 
   const uploadImage = (e) => {
     setIsLoading(true);
@@ -107,6 +110,7 @@ const CreateContainer = () => {
         setIsLoading(false)
       }, 3000);
     }
+    fetchData();
   };
 
   const clearData = () =>{
@@ -115,7 +119,16 @@ const CreateContainer = () => {
     setCarolies("");
     setPrice("");
     setCategory("Select Category")
-  }
+  };
+
+  const fetchData = async()=>{
+    await getAllFoodItems().then(data => {
+      dispatch({
+        type: actionTypes.SET_FOOD_ITEMS,
+        foodItems: data
+      })
+    })
+  };
 
   return (
     <div className='w-full min-h-screen flex items-center justify-center'>
@@ -150,8 +163,8 @@ const CreateContainer = () => {
         </div>
 
         <div className='w-full'>
-          <select className='outline-none w-full text-base p-2 border-b-2 border-gray-200 rounded-md cursor-pointer'>
-            <option value='other' onChange={(e) => setCategory(e.target.value)} className="bg-white">Select Category</option>
+          <select onChange={(e) => setCategory(e.target.value)} className='outline-none w-full text-base p-2 border-b-2 border-gray-200 rounded-md cursor-pointer'>
+            <option value='other'  className="bg-white">Select Category</option>
             {
               categories && categories.map(items => (
                 <option key={items.id} className="capitalize outline-none border-0 text-base bg-white 
